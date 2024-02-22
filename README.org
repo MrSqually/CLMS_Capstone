@@ -1,4 +1,4 @@
-#+title: Central Planner
+#+title: Quantification and Evaluation of Large Language Model Hallucination Rates via Targeted Domain Knowledge Prompting
 
 * Introduction
 ** General Premise
