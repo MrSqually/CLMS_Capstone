@@ -1,4 +1,4 @@
-#+title: Quantification and Evaluation of Large Language Model Hallucination Rates via Targeted Domain Knowledge Prompting
+#+title: Quantification and Evaluation of Large Language Model Hallucinations via Targeted Domain Knowledge Prompting
 
 * Introduction
 ** General Premise
