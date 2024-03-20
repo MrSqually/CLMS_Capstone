@@ -81,3 +81,36 @@
     eprint = {https://direct.mit.edu/tacl/article-pdf/doi/10.1162/tacl\_a\_00529/2065956/tacl\_a\_00529.pdf},
 }
 ** TODO Summary
+* Improving Language Models with Advantage-based Offline Policy Gradients
+** Citation
+@misc{baheti2023improving,
+      title={Improving Language Models with Advantage-based Offline Policy Gradients},
+      author={Ashutosh Baheti and Ximing Lu and Faeze Brahman and Ronan Le Bras and Maarten Sap and Mark Riedl},
+      year={2023},
+      eprint={2305.14718},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+** TODO Summary
+* Generating with Confidence: Uncertainty Quantification for Black-box Large Language Models
+** Citation
+@misc{lin2023generating,
+      title={Generating with Confidence: Uncertainty Quantification for Black-box Large Language Models},
+      author={Zhen Lin and Shubhendu Trivedi and Jimeng Sun},
+      year={2023},
+      eprint={2305.19187},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+** TODO Summary
+* Just Ask for Calibration
+** Citation
+@misc{tian2023just,
+      title={Just Ask for Calibration: Strategies for Eliciting Calibrated Confidence Scores from Language Models Fine-Tuned with Human Feedback},
+      author={Katherine Tian and Eric Mitchell and Allan Zhou and Archit Sharma and Rafael Rafailov and Huaxiu Yao and Chelsea Finn and Christopher D. Manning},
+      year={2023},
+      eprint={2305.14975},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+** TODO Summary
