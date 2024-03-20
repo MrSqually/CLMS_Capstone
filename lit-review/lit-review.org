@@ -1,0 +1,83 @@
+#+title: Lit Review
+#+author: Dean Cahill
+
+* HaluEval: A Large-Scale Hallucination Evaluation Benchmark
+** Citation
+@misc{li2023halueval,
+      title={HaluEval: A Large-Scale Hallucination Evaluation Benchmark for Large Language Models},
+      author={Junyi Li and Xiaoxue Cheng and Wayne Xin Zhao and Jian-Yun Nie and Ji-Rong Wen},
+      year={2023},
+      eprint={2305.11747},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+
+** Summary
+- Benchmark of 35,000 hallucinated/normal samples
+  - 5000 general user queries
+  - 30000 task specific examples
+    - QA
+    - Knowledge Grounded Dialogue
+    - Summarization
+- LLMs poor at distinguishing hallucinations
+  - 58% : barely above chance
+  - Spans that look similar but differ in key facts
+
+[[.images/halueval.png]]
+[[.images/halueval2.png]]
+
+* FactCHD
+** Citation
+** TODO Summary
+* Retrieval Augmentation Reduces Hallucination in Conversation
+** Citation
+@misc{shuster2021retrieval,
+      title={Retrieval Augmentation Reduces Hallucination in Conversation},
+      author={Kurt Shuster and Spencer Poff and Moya Chen and Douwe Kiela and Jason Weston},
+      year={2021},
+      eprint={2104.07567},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+** TODO Summary
+
+* Trusting Your Evidence: Hallucinate Less with Context-aware Decoding
+** Citation
+@misc{shi2023trusting,
+      title={Trusting Your Evidence: Hallucinate Less with Context-aware Decoding},
+      author={Weijia Shi and Xiaochuang Han and Mike Lewis and Yulia Tsvetkov and Luke Zettlemoyer and Scott Wen-tau Yih},
+      year={2023},
+      eprint={2305.14739},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+** TODO Summary
+
+* How Language Model Hallucinations Can Snowball
+** Citation
+@misc{zhang2023language,
+      title={How Language Model Hallucinations Can Snowball},
+      author={Muru Zhang and Ofir Press and William Merrill and Alisa Liu and Noah A. Smith},
+      year={2023},
+      eprint={2305.13534},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+** TODO Summary
+
+* FAITHDIAL: A Faithful Benchmark for Information-Seeking Dialogue
+** Citation
+@article{10.1162/tacl_a_00529,
+    author = {Dziri, Nouha and Kamalloo, Ehsan and Milton, Sivan and Zaiane, Osmar and Yu, Mo and Ponti, Edoardo M. and Reddy, Siva},
+    title = "{FaithDial: A Faithful Benchmark for Information-Seeking Dialogue}",
+    journal = {Transactions of the Association for Computational Linguistics},
+    volume = {10},
+    pages = {1473-1490},
+    year = {2022},
+    month = {12},
+    issn = {2307-387X},
+    doi = {10.1162/tacl_a_00529},
+    url = {https://doi.org/10.1162/tacl\_a\_00529},
+    eprint = {https://direct.mit.edu/tacl/article-pdf/doi/10.1162/tacl\_a\_00529/2065956/tacl\_a\_00529.pdf},
+}
+** TODO Summary
