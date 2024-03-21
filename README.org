@@ -1,27 +1,30 @@
-#+title: Quantification and Evaluation of Large Language Model Hallucinations via Targeted Domain Knowledge Prompting
+#+title: Exploring the Relationship Between Domain and Hallucination Resolution Methodologies within LLM QA Systems.
 
-* Introduction
-** General Premise
-This capstone project seeks to explore methodologies pertaining to the quantification and evaluation of hallucination rates within Large Language Models, with the ultimate end-goal being a dataset which produces reliable metrics for the hallucination rate of these models and can be either improved or extended into a proper benchmark dataset.
+* Methodology
+- Generate several topic-based "domains" across subsets of popular QA datasets.
+- Gauge the performance of open-domain LLM-based chat models against proper QA systems
+- touch on retrieval and calibration methods against this baseline
 
-** Motivation
-The centering of Machine-Learning in the cultural consciousness belies the complexity of the underlying model architectures - for end-users, they are often available as an API, or, at "best", a browser interface. This, combined with the tendency on the part of larger companies (i.e., the ones producing LLMs) to obfuscate their architectures and methodologies (and to play up & mystify the abilities of their products), means that there is a certain - not quite ignorance, more like confusion - surrounding the particular function and scope of these models. *As such, there is a tendency to see LLMs like GPT used as rudimentary QA systems: to report facts[source], to assist in prose [source], to even write code [source].*
+* Datasets
+- Topic Segmented (Science, Law, Rhetoric / Composition, more)
+- "Factoid" vs "Synthesis" question types
+  - sliding scale?
+  - general idea: "synthesis questions require an understanding of what the semantic similarity between features encodes - i.e., an understanding of why attention weights are high".
 
-We see this practice as fruitful for the study of hallucinations - often, these questions are (a.) domain-specific, and (b.) prompted to untuned, general-form
-versions of these models. As such, it may be possible to develop a dataset of prompts to these pseudo-QA systems which can describe their hallucinatory properties.
 
-** Prototype Methodology
-1. Develop schematizations for "Domain Knowledge" and "Hallucinations" which can accommodate each other and capture all significant phenomenon in the latter.
-2. Develop an experimental methodology (capable of being run) to gather hallucination-generating questions from annotators
-   NOTE - strict adherence to this part of the project might be a bit too committed to the theatre of "the experiment." Explore other options (just write a ton of prompts, feed the questions directly to the LLM, etc).
-3. Build a pipeline that can evaluate several LLMs (without additional training) on this dataset. Develop an evaluation metric that captures nuances expressed through the hallucination schema.
-4. Interpret the results in relation to the domain schema and try to frame the next steps of the project.
+* Models
+** GPT-4
+** [high-level / off-shelf general purpose Retrieval QA system]
+** [high-level / off-shelf general purpose KG QA system]
+** BERT-Tuned QA System (my IE final project)
 
-* Current Notes
-** What is Domain Knowledge?
 
-I think the word "knowledge" has a lot of epistemic baggage that we may be able to ignore entirely in our working definition - due to the fact that models are not situated and therefore do not possess knowledge graphs of possible worlds. If we say that Domain Knowledge, in an agent-agnostic sense, consists of a combination of information and the ability to apply that information - to recognize when particular features of a problem are salient, how to perform methodologies which lead to outcomes, etc. - then I believe we can define domain knowledge (DK) in the context of "dumb" LLMs as the set of relations from a given domain (domain here being some volume in the parameter space of the model). The relations may ultimately land outside of the domain: for instance, domain knowledge in mathematics applied to physics. The important part of the definition lies in the delineation of the set of transformations starting at the domain, because mapping back to this set of transformations is how we seek to define hallucinations. 
+* Benchmarks
+** HaluEval
+** MRR
+** F1 (knowledgeF1 and rareF1)
+** Etc.
 
-** What are Hallucinations?
-
-If we consider the above definition, we can operationalize a definition of LLM hallucinations in terms of morphisms. While the specific contours of this definition are still eluding me, my articulation of the idea is this: A hallucination comes about when a model generates a DK relation from a larger domain than is delineated by the semantic boundaries of the prompt. Thus, the parameters from which the output is generated cannot be inversely mapped back into a relation belonging to DK. 
+* Retrieval / Calibration methods
+** Path Grounding
+** Response tuning via prompt
