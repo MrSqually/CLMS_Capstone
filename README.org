@@ -1,32 +1,16 @@
-#+title: Asking Hard Questions: Exploring the Relationship Between Domain and Hallucination Resolution Methodologies within LLM QA Systems.
+#+title: Could You Say That Again? Exploring Hallucinatory Variance in Large Language Models For Closed-Domain QA
+#+author: Dean Cahill   
 
+* Abstract 
+* Introduction  
+Large Language Models are, for better or worse, the vanguard of modern NLP. The relative success that these models have 
+with general-purpose tasks is quite impressive, leading to a great deal of cultural cache. What these models "mean" for us, 
+what they represent for society, is something that will need to be elaborated on at another time. 
+
+* Dataset
+* Models 
 * Methodology
-- Generate several topic-based domains across subsets of popular QA datasets.
-- Gauge the performance of open-domain LLM-based chat models against proper QA systems
-- touch on retrieval and calibration methods against this baseline
-
-* Datasets
-- Topic Segmented (Science, Law, Rhetoric / Composition, more)
-- "Factoid" vs "Synthesis" question types
-  - sliding scale?
-  - general idea: "synthesis questions require an understanding of what the semantic similarity between features is encoding - i.e., an understanding of why attention weights between them are high."
--  Possible Existing Sources:
-  - ComplexWebQuestions (Talmor Berant 2018)
-  - Wizard of Wikipedia
-
-* Models
-- GPT-4
-- [high-level / off-shelf general purpose Retrieval QA system]
-- [high-level / off-shelf general purpose KG QA system]
-- BERT-Tuned QA System (my IE final project)
-
-* Benchmarks
-- HaluEval
-- FaithDial
-- MRR
-- F1 (knowledgeF1 and rareF1)
-- Etc.
-
-* Retrieval / Calibration methods
-- Path Grounding
-- Response tuning via further prompting
+* Evaluation
+* Results
+* Conclusion 
+* References

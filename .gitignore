@@ -1,0 +1,9 @@
+
+*/data/*
+
+# ignore config
+.vscode/*
+
+
+# pycache files
+*.py[c,o]

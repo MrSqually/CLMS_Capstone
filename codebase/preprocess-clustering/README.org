@@ -1,0 +1,9 @@
+#+title: Clustering Pipeline & Dataset Preprocessing
+#+author: Dean Cahill 
+
+* Overview  
+In order to properly test our LLMs for hallucinations, we need a proper task and dataset. We want questions that reflect the social role of the LLM. This made Natural Questions a natural choice.
+
+* Sampling Methodology 
+* Clustering Algorithm 
+* References    
