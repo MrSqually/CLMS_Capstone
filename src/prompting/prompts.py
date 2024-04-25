@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-## CLMS Capstone | Prompt Generation
+# CLMS Capstone | Prompt Generation
 # Dean Cahill
 
 # A collection of functions which return prompts as strings.

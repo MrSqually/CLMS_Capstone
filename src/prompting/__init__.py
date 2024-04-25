@@ -4,13 +4,12 @@
 
 # ==================================================================|
 # Imports
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 
-# from transformers import BartForConditionalGeneration, BartTokenizer
 
 import argparse
 
-# from prompting import prompts
+from prompting import prompts
 
 # ==================================================================|
 # Flan-T5
@@ -18,11 +17,20 @@ flan_t5 = "google/flan-t5-small"
 flant5_model = AutoModelForSeq2SeqLM.from_pretrained(flan_t5)
 flant5_tokenizer = AutoTokenizer.from_pretrained(flan_t5)
 
+# ==================================================================|
+# Mixtral
+mixtral = "mistralai/Mixtral-8x7B-v0.1"
+mixtral_model = AutoModelForCausalLM.from_pretrained(mixtral, device_map="auto")
+mixtral_tokenizer = AutoTokenizer.from_pretrained(mixtral)
+
+# ==================================================================|
+# Prompt Inference Loop & Data Collection
+
 
 # AutoModel-based Prompt Function
-def prompt_t5_llm(
-    model: AutoModelForSeq2SeqLM,
-    tokenizer: AutoTokenizer,
+def prompt_llm(
+    model,
+    tokenizer,
     data,
     **params,
 ) -> list[str]:
@@ -37,20 +45,14 @@ def prompt_t5_llm(
 
     ## returns
     list[str] -> answers to the batch of questions in data
-    STATUS: TODO
+    STATUS: REVIEW
     """
-    ids = tokenizer(data, **params).input_ids
+    ids = tokenizer(data).input_ids
     output = model.generate(ids)
     return tokenizer.decode(output[0])
 
 
-# =================================================================|
-# GPT
-# =================================================================|
-# CLAUDE / LLAMA3 (newer model)
-# =================================================================|
-# Prompt Inference Loop & Data Collection
-def bare_repetition(model, data, reps, **kwargs):
+def bare_repetition_prompt(model, data, reps, **kwargs):
     """Bare Repetition
 
     ## params
@@ -58,10 +60,14 @@ def bare_repetition(model, data, reps, **kwargs):
     ## returns
     STATUS: TODO
     """
+    # for doc in data:
+    #   - prompt base
+    #   - prompt QA context
+    #   - prompt Halu context
     pass
 
 
-def contradictive_repetition():
+def contradictive_repetition_prompt() -> tuple[str, str, str]:
     """
 
     ## params
@@ -69,32 +75,48 @@ def contradictive_repetition():
     ## returns
     STATUS: TODO
     """
+    # for doc in data:
+    #   - prompt base
+    #   - prompt QA context
+    #   - prompt Halu context
     pass
 
 
-def instructive_repetition():
+def instructive_repetition_prompt() -> tuple[str, str, str]:
     """Instructive Repetition
-
     ## params
 
     ## returns
     STATUS: TODO
     """
+    # for doc in data:
+    #   - prompt base
+    #   - prompt QA context
+    #   - prompt Halu context
+
     pass
 
 
-def prompt_inference_loop():
-    """
+def chain_of_thought_repetition_prompt() -> tuple[str, str, str]:
+    """"""
+    # for doc in data:
+    #   - prompt base
+    #   - prompt QA context
+    #   - prompt Halu context
+    pass
+
+
+def prompt_inference_loop() -> dict[str, tuple[str, str, str]]:
+    """Inference loop for a given set of documents
 
     ## params
 
     ## returns
     STATUS: TODO
     """
-
     # for i in number_of_repetitions:
-    #   prompt llm to answer question
-    #   store the responses in json
+    #   prompt llm to answer question => triple (base, QA, halu)
+    #   serialize & store responses
     pass
 
 
