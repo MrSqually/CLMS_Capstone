@@ -14,7 +14,7 @@
 * Types of Prompt Repetition
 ** Iterative
 - Simply repeat the prompt many times, observe the variation
-- Attempt this both in
+- Attempt this both
 ** Contradictive
 - Inform the model that the output is incorrect
 - various phrasings & extremities

@@ -77,8 +77,6 @@ def batch_iterator(
                
             yield batch
             
-                
-
 
 # ============================================================================|
 # Topic Model
@@ -190,8 +188,8 @@ def main(args: argparse.Namespace):
             topics.extend(topic_model.topics_)
         topic_model.topics = topics
 
-        fig = topic_model.visualize_document_datamap(batch_docs)
-        fig.savefig(f"results/topics/epoch{epoch}_topics.png", bbox_inches="tight")
+    fig = topic_model.visualize_document_datamap(batch_docs)
+    fig.savefig(f"results/topics/epoch{epoch}_topics.png", bbox_inches="tight")
 
 
 if __name__ == "__main__":
