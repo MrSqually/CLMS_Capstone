@@ -4,11 +4,11 @@
 """
 Four primary forms of evaluation:
 1.) Simplex Correctness -  Does the response contain `short_answer` in the text?
+    a.) "Strict" Recall (Adlakha et al 2024)
 2.) Complex Correctness -  similarity full answer and response tokens (normalized)
     a.) ROUGE
     b.) BLEU
     c.) Precision/Recall/F1
-        i.) "Strict" Recall (Adlakha et al 2024)
 3.) Faithfulness - Token Overlap Precision
     a.) K-Precision (Adlakha et al 2024)
         i.) "faithfulness wrt relevant knowledge"
