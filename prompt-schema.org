@@ -28,5 +28,5 @@
   - "Could you repeat that?"
   - "Could you repeat that, but {x}"
 * Relevant Hyperparameters for tuning
-** Temperature
-** Number of Repetitions
+- Temperature
+- Number of Repetitions
