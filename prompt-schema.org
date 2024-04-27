@@ -3,14 +3,14 @@
 
 * Types of Evaluation
 ** Simple Correctness -  Does the response contain `short_answer` in the text?
-*** "Strict" Recall (Adlakha et al 2024)
+- "Strict" Recall (Adlakha et al 2024)
 ** Complex Correctness -  similarity full answer and response tokens (normalized)
-*** ROUGE
-*** BLEU
-*** Precision/Recall/F1
+- ROUGE
+- BLEU
+- Precision/Recall/F1
 *** NOTE: traditional QA metrics penalize lexical matching too much - verbosity isn't inherently bad
 ** Faithfulness - Token Overlap Precision
-*** K-Precision
+- K-Precision
    - "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
 ** Model Adjudication with DeBERTa
 * Types of Prompt Repetition
