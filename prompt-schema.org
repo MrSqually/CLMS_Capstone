@@ -1,7 +1,7 @@
 #+TITLE: Hallucination / Prompt Schema
 #+author: Dean Cahill
 
-* Types of Evaluation - Hallucination Detection (what counts as a "hallucination" for the distribution???)
+* Types of Evaluation
 ** Simple Correctness -  Does the response contain `short_answer` in the text?
     *** "Strict" Recall (Adlakha et al 2024)
 ** Complex Correctness -  similarity full answer and response tokens (normalized)
