@@ -3,17 +3,16 @@
 
 * Types of Evaluation
 ** Simple Correctness -  Does the response contain `short_answer` in the text?
-    *** "Strict" Recall (Adlakha et al 2024)
+*** "Strict" Recall (Adlakha et al 2024)
 ** Complex Correctness -  similarity full answer and response tokens (normalized)
-    *** ROUGE
-    *** BLEU
-    *** Precision/Recall/F1
-    *** NOTE: traditional QA metrics penalize lexical matching too much - verbosity isn't inherently bad
+*** ROUGE
+*** BLEU
+*** Precision/Recall/F1
+*** NOTE: traditional QA metrics penalize lexical matching too much - verbosity isn't inherently bad
 ** Faithfulness - Token Overlap Precision
-    *** K-Precision
-        - "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
+*** K-Precision
+   - "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
 ** Model Adjudication with DeBERTa
-
 * Types of Prompt Repetition
 ** Bare Prompting
 - Simply repeat the prompt many times, observe the variation
@@ -28,8 +27,6 @@
   - "Could you {say|word} that {again|a different way|differently}?"
   - "Could you repeat that?"
   - "Could you repeat that, but {x}"
-** 
-
 * Relevant Hyperparameters for tuning
 ** Temperature
 ** Number of Repetitions
