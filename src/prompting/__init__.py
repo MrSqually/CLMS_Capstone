@@ -52,12 +52,13 @@ def prompt_llm(
     return tokenizer.decode(output[0])
 
 
-def bare_repetition_prompt(model, data, reps, **kwargs):
+def bare_repetition_prompt(model, data, reps, **kwargs) -> tuple[str,str,str]:
     """Bare Repetition
 
     ## params
 
     ## returns
+    (nocon_output, qacon_output, halucon_output)
     STATUS: TODO
     """
     # for doc in data:

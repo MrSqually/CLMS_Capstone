@@ -20,13 +20,11 @@ from tqdm import tqdm
 
 # Standard Imports
 import argparse
-import gzip 
 import json
-import logging 
+import logging
 import os
 import random
-import re 
-import tempfile
+import re
 import tomli
 
 # Typing Imports
@@ -35,7 +33,8 @@ from typing import Generator
 # Logging Imports
 import wandb
 
-random.seed = "We each go through so many bodies in each other"
+random.seed("We each go through so many bodies in each other")
+
 logger = logging.getLogger(__name__)
 # ============================================================================|
 # Data Iterator
@@ -44,39 +43,37 @@ logger = logging.getLogger(__name__)
 # ============================================================================|
 
 
-def parse_document(doc: dict) -> pd.DataFrame:
+def parse_document(doc):
     """Parse an individual document
 
     ## params
     ## returns
     STATUS: #TODO
     """
-    text = re.match(r"Categories : <Ul> (.*)<\/Ul> Hidden",doc["document_text"]).string
-    text = text.replace("<Li>", "").replace("</Li>", "").replace("<Ul>", "").replace("Hidden", "")
-    doc["document_text"] = text 
-    return doc
+    textstr = re.search(r"Categories : <Ul>(.*)[<\/Ul>] Hidden", doc)
+    text = ""
+    if textstr:
+        # Additional formatting on match text
+        textval = textstr.group(0)
+        text = re.sub("<[^<]+?>", "", textval).strip()
+        text = [word for word in text.split("   ")][1:-1]
+        text_tokens = "".join(word for word in text)
+        return text_tokens
+    return text
 
 
 def batch_iterator(
-    data_dir: str | os.PathLike,
-    batch_size: int = 10,
+    data_file: str | os.PathLike,
+    batch_size: int,
 ) -> Generator:
     """Create a minibatch iterator for online topic modeling
 
     ## params
     ## returns
-    STATUS: #TODO
+    STATUS: REVIEW
     """
-    for root, dirs, chunk_zip_fnames in os.walk(data_dir):
-        for chunk_zip in chunk_zip_fnames:
-            batch = []
-            with gzip.open(os.path.join(root, chunk_zip), 'rt') as compressed_data:
-               
-               for line in compressed_data.readlines():
-                    batch.append(parse_document(json.laods(line)))
-               
-            yield batch
-            
+    yield from pd.read_json(data_file, lines=True, chunksize=batch_size)
+
 
 # ============================================================================|
 # Topic Model
@@ -90,7 +87,7 @@ def pipeline_parameters(fname: str | os.PathLike) -> dict[dict]:
 
 def pipeline_components(
     **kwargs,
-) -> tuple[IncrementalPCA, MiniBatchKMeans, OnlineCountVectorizer]:
+) -> tuple:
     """Function to generate the pipeline components for topic model
 
     ## params
@@ -101,7 +98,9 @@ def pipeline_components(
     """
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     umap_model = IncrementalPCA(**kwargs["umap_params"])
-    cluster_model = NQRiverClustering(cluster.DBSTREAM(**kwargs["cluster_params"]))
+    cluster_model = NQRiverClustering(
+        model=cluster.DBSTREAM(**kwargs["cluster_params"])
+    )
     vec_model = OnlineCountVectorizer(**kwargs["vectorizer_params"])
     ctfidf_model = ClassTfidfTransformer(**kwargs["tfidf_params"])
 
@@ -120,7 +119,7 @@ class NQRiverClustering:
     - (Fine tune topic words)
     """
 
-    def __init__(self, model, **kwargs):
+    def __init__(self, model):
         self.model = model
 
     def partial_fit(self, umap_embeddings):
@@ -131,15 +130,16 @@ class NQRiverClustering:
         STATUS: #TODO
         """
         # Learn new embeddings
-        for umap_embedding, _ in stream.iter_array(umap_embeddings):
-            self.model = self.model.learn_one(umap_embedding)
+        for i, (umap_embedding, _) in enumerate(stream.iter_array(umap_embeddings)):
+            self.model.learn_one(umap_embedding)
 
         # Predict labels
-        labels = [
-            self.model.predict_one(u_emb)
-            for u_emb, _ in stream.iter_array(umap_embeddings)
-        ]
+        labels = []
+        for umap_embedding, _ in stream.iter_array(umap_embeddings):
+            label = self.model.predict_one(umap_embedding)
+            labels.append(label)
         self.labels_ = labels
+
         return self
 
 
@@ -152,7 +152,9 @@ def parse_args() -> argparse.Namespace:
         description="topic model for Natural Questions dataset"
     )
     parser.add_argument(
-        "--train_dir", help="Input directory for dataset", default="data/v1.0/train"
+        "--train",
+        help="Input file for dataset",
+        default="data/simplified-nq-train.jsonl",
     )
     parser.add_argument(
         "--config",
@@ -162,34 +164,41 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-
 def main(args: argparse.Namespace):
     # ================================|
     # Initialize Models
-    model_params: dict[dict] = pipeline_parameters(args.config)
-    hyperparams = model_params["hyperparameters"]
+    model_params: dict = pipeline_parameters(args.config)
+    hyperparams: dict = model_params["hyperparameters"]
+
     embed, umap, cluster, vectorizer, ctfidf = pipeline_components(**model_params)
     topic_model = BERTopic(
-        embedding_model=embed, 
-        umap_model=umap,
         hdbscan_model=cluster,
         vectorizer_model=vectorizer,
         ctfidf_model=ctfidf,
     )
     # ================================|
     # Data Preprocessing
-    doc_batches = batch_iterator(args.train_dir, batch_size=hyperparams["batch_size"])
+    doc_batches = batch_iterator(args.train, batch_size=hyperparams["batch_size"])
+
     for epoch in range(hyperparams["epochs"]):
+        logger.info(f"Starting Epoch {epoch}")
         batch_docs = []
         topics = []
-        for batch_id, batch in doc_batches:
-            topic_model.fit(batch)
-            batch_docs.append(batch)
+        for i, batch in tqdm(enumerate(doc_batches)):
+            batchtext = [
+                parse_document(doc) for doc in batch["document_text"].values.tolist()
+            ]
+
+            logger.info(f"Processing Batch {i}")
+            topic_model.partial_fit(batchtext)
+            batch_docs.append(batchtext)
             topics.extend(topic_model.topics_)
+        logger.info(f"Batch Processed! Updating topics...")
         topic_model.topics = topics
 
+    logger.info("Generating Document Maps")
     fig = topic_model.visualize_document_datamap(batch_docs)
-    fig.savefig(f"results/topics/epoch{epoch}_topics.png", bbox_inches="tight")
+    fig.savefig(f"results/topics/topics.png", bbox_inches="tight")
 
 
 if __name__ == "__main__":

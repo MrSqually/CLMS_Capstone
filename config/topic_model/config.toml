@@ -1,13 +1,17 @@
 
 [hyperparameters]
 epochs=25
-batch_size=10
+batch_size=100
 
 [umap_params]
 n_components=5
 
 [cluster_params]
-
+clustering_threshold=1.0
+fading_factor = 0.01
+cleanup_interval=2.0
+intersection_factor = 0.3
+minimum_weight = 1.0
 
 [vectorizer_params]
 stop_words="english"
