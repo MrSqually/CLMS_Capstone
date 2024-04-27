@@ -12,7 +12,8 @@
 ** Faithfulness - Token Overlap Precision
 - K-Precision
    - "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
-** Model Adjudication with DeBERTa
+** Model Adjudication
+- DeBERTa
 * Types of Prompt Repetition
 ** Bare Prompting
 - Simply repeat the prompt many times, observe the variation
