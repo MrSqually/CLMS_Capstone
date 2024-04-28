@@ -1,0 +1,7 @@
+#
+model_name = "flant5"
+
+[model_args]
+
+[run_params]
+num_repetitions = 100

@@ -47,9 +47,4 @@ class HaluMetrics:
         - neutral 
 
         """
-        with torch.no_grad():
-            label_mapping = ["contradiction", "entailment", "neutral"]
-            labels = [
-                label_mapping[score_max] for score_max in logits.argmax(dim=1)
-            ]
-        return labels
+        pass 

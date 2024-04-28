@@ -14,23 +14,18 @@ Each prompt returns 3 strings:
 qa_context: str = """CONTEXT: You are a Question-Answering service. Answer the following question as correctly as possible with as little extraneous information as possible."""
 
 halu_context: str = """CONTEXT: You are a Question-Answering service being evaluated for
-the capacity to generate hallucinations. Answer the following question. Do not hallucinate
-extraneous information."""
+the capacity to generate hallucinations through repetition. You will be asked the following question many times. Do not hallucinate extraneous information."""
 
 # ============================================================================|
+def get_prompts():
+    return basic_prompt, chain_of_thought_prompt, contradiction_prompt, instructive_prompt,
 
 
-def bare_prompt(question) -> tuple[str, str, str]:
-    """Prompt for basic QA
-    STATUS REVIEW
-    """
+def basic_prompt(question) -> tuple[str, str, str]:
     return f"{question}", f"{qa_context}\n\n{question}", f"{halu_context}\n\n{question}"
 
 
 def contradiction_prompt(question) -> tuple[str, str, str]:
-    """Prompt for direct contradiction
-    STATUS REVIEW
-    """
     mod_string = random.choice(
         [
             "that is incorrect",
@@ -43,7 +38,6 @@ def contradiction_prompt(question) -> tuple[str, str, str]:
 
 
 def instructive_prompt(question) -> tuple[str, str, str]:
-    """TODO"""
     mod_string = random.choice(
         [
             "",
@@ -55,7 +49,7 @@ def instructive_prompt(question) -> tuple[str, str, str]:
             ", but less verbose",
         ]
     )
-    tgt_string = f"Could you repeat that {mod_string}: {question}"
+    tgt_string = f"Could you repeat that{mod_string}: {question}"
     return (
         tgt_string,
         f"{qa_context}\n\n{tgt_string}",
@@ -64,9 +58,6 @@ def instructive_prompt(question) -> tuple[str, str, str]:
 
 
 def chain_of_thought_prompt(question) -> tuple[str, str, str]:
-    """Prompt for step-by-step (CoT) reasoning
-    STATUS REVIEW
-    """
     tgt_string = f"Answer the following question, explaining each step of your reasoning: {question}"
     return (
         tgt_string,

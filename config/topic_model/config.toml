@@ -1,7 +1,7 @@
 
 [hyperparameters]
-epochs=25
-batch_size=100
+epochs=1
+batch_size=1000
 
 [umap_params]
 n_components=5

@@ -70,7 +70,6 @@ def batch_iterator(
 
     ## params
     ## returns
-    STATUS: REVIEW
     """
     yield from pd.read_json(data_file, lines=True, chunksize=batch_size)
 
@@ -79,7 +78,14 @@ def batch_iterator(
 # Topic Model
 # ============================================================================|
 def pipeline_parameters(fname: str | os.PathLike) -> dict[dict]:
-    """Function to parse configuration into pipeline parameters"""
+    """Function to parse configuration into pipeline parameters
+    
+    ## params 
+    - fname : config.toml file path 
+
+    ## returns 
+    * nested dictionary containing all sets of hyperparameters
+    """
     with open(fname, "rb") as f:
         configs = tomli.load(f)
     return configs
@@ -91,10 +97,10 @@ def pipeline_components(
     """Function to generate the pipeline components for topic model
 
     ## params
-    ## returns
+    for the full set of parameters, see config/topic_model/config.toml
 
+    ## returns
     a tuple containing the mapping, clustering, and vectorizing models
-    STATUS: #TODO
     """
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     umap_model = IncrementalPCA(**kwargs["umap_params"])
@@ -124,10 +130,10 @@ class NQRiverClustering:
 
     def partial_fit(self, umap_embeddings):
         """Fit clusters on umap embeddings
-
-        ## params
-        ## returns
-        STATUS: #TODO
+        In order to model such a large dataset, we must 
+        be able to cluster incrementally. Thus, a partial 
+        fit algortihm makes more sense than an ordinary 
+        clustring algorithm
         """
         # Learn new embeddings
         for i, (umap_embedding, _) in enumerate(stream.iter_array(umap_embeddings)):
@@ -144,12 +150,55 @@ class NQRiverClustering:
 
 
 # ============================================================================|
+# Training & Inference Loops
+# ============================================================================|
+
+
+def train_topic_model(model, data, **hyperparams):
+    """Learn topics from documents
+    
+    ## params 
+    - model : BERTopic model for clustering 
+    - data  : filename
+    - params: hyperparameters
+    """
+    doc_batches = batch_iterator(data, batch_size=hyperparams["batch_size"])
+    batch_docs = []
+    topics = []
+    for batch in tqdm(doc_batches):
+        batchtext = [
+            parse_document(doc) for doc in batch["document_text"].values.tolist()
+        ]
+        model.partial_fit(batchtext)
+        batch_docs.append(batchtext)
+        topics.extend(model.topics_)
+    model.topics = topics
+    model.save("models/NQ_topic_model.pkl", serialization="pickle")
+    return batch_docs
+
+
+def group_documents_by_topic():
+    # TODO
+    pass
+
+
+# ============================================================================|
 # Main
 # ============================================================================|
 def parse_args() -> argparse.Namespace:
     """Topic Model Argument Parser"""
     parser = argparse.ArgumentParser(
         description="topic model for Natural Questions dataset"
+    )
+    parser.add_argument(
+        "--is_train",
+        help="boolean for running train loop",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--is_eval",
+        help="boolean for performing clustering of documents",
+        action="store_true",
     )
     parser.add_argument(
         "--train",
@@ -169,7 +218,6 @@ def main(args: argparse.Namespace):
     # Initialize Models
     model_params: dict = pipeline_parameters(args.config)
     hyperparams: dict = model_params["hyperparameters"]
-
     embed, umap, cluster, vectorizer, ctfidf = pipeline_components(**model_params)
     topic_model = BERTopic(
         hdbscan_model=cluster,
@@ -177,28 +225,14 @@ def main(args: argparse.Namespace):
         ctfidf_model=ctfidf,
     )
     # ================================|
-    # Data Preprocessing
-    doc_batches = batch_iterator(args.train, batch_size=hyperparams["batch_size"])
+    # Process Loops
+    if args.is_train:
+        batch_docs = train_topic_model(topic_model, args.train, **hyperparams)
+        with open("results/topic_model/batch_docs", 'w') as f:
+            f.write(batch_docs)
 
-    for epoch in range(hyperparams["epochs"]):
-        logger.info(f"Starting Epoch {epoch}")
-        batch_docs = []
-        topics = []
-        for i, batch in tqdm(enumerate(doc_batches)):
-            batchtext = [
-                parse_document(doc) for doc in batch["document_text"].values.tolist()
-            ]
-
-            logger.info(f"Processing Batch {i}")
-            topic_model.partial_fit(batchtext)
-            batch_docs.append(batchtext)
-            topics.extend(topic_model.topics_)
-        logger.info(f"Batch Processed! Updating topics...")
-        topic_model.topics = topics
-
-    logger.info("Generating Document Maps")
-    fig = topic_model.visualize_document_datamap(batch_docs)
-    fig.savefig(f"results/topics/topics.png", bbox_inches="tight")
+    if args.is_eval:
+        group_documents_by_topic(args.train, hyperparams)
 
 
 if __name__ == "__main__":
