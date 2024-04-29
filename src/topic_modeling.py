@@ -35,11 +35,7 @@ random.seed("We each go through so many bodies in each other")
 logger = logging.getLogger(__name__)
 # ============================================================================|
 # Data Iterator
-# TODO - parse individual document for relevant information
-# TODO - batch iterator for clustering pipeline
 # ============================================================================|
-
-
 def parse_document(doc):
     """Parse an individual document
 

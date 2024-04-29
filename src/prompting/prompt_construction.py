@@ -1,83 +1,82 @@
 #!/usr/bin/env python3
 # CLMS Capstone | Prompt Generation
 # Dean Cahill
-import random
+
 
 """ A collection of functions which return prompts as a tuple of strings.
 Each prompt returns 3 strings:
 1. the prompt itself
 2. A "naive context" prompt, modified by the QA task context. 
 3. An "aware context" prompt, modified by the hallucination task context (a "metatask")
-
-ORIGINAL FLAN TUNING TEMPLATES:
-"natural_questions": [
-    ("Question: {question}?\nAnswer:", "{answer}"),
-    ("{question}?", "{answer}"),
-    ("Answer the following question:\n\n{question}", "{answer}"),
-    ("Answer this question:\n\n{question}?", "{answer}"),
-    ("Please answer this question: {question}", "{answer}"),
-    ("Answer the question...{question}?", "{answer}"),
-    ("What is the answer to this question? {question}", "{answer}"),
-    ("Can you tell me the answer to {question}?", "{answer}"),
-    ("Next question: {question}", "{answer}"),
-    ("Q: {question} A:", "{answer}"),
-],
 """
-
-
-qa_context: str = """CONTEXT: You are a Question-Answering service. Answer the following question as correctly as possible with as little extraneous information as possible."""
-
-halu_context: str = """CONTEXT: You are a Question-Answering service being evaluated for
-the capacity to generate hallucinations through repetition. You will be asked the following question many times. Do not hallucinate extraneous information."""
-
+from abc import ABC, abstractmethod
+from dataclasses import dataclass 
+import random
+random.seed("We each go through so many bodies in each other")
 # ============================================================================|
-def get_prompts():
-    return basic_prompt, chain_of_thought_prompt, contradiction_prompt, instructive_prompt,
+class Prompt(ABC):
+    # ================================| 
+    # Context Strings 
+    qa_ctx: str = """CONTEXT: You are a Question-Answering service. Answer the following question as correctly as possible with as little extraneous information as possible."""
+    halu_ctx: str = """CONTEXT: You are a Question-Answering service being evaluated for the capacity to generate hallucinations through repetition. You will be asked the following question many times. Do not hallucinate extraneous information."""
+
+    # ================================|
+    # FLAN Tuning Templates with {answer} removed
+    _templates = [
+    "Question: {question}?\nAnswer:",
+    "{question}?, ",
+    "Answer the following question:\n\n{question}",
+    "Answer this question:\n\n{question}?",
+    "Please answer this question: {question}",
+    "Answer the question...{question}?",
+    "What is the answer to this question? {question}",
+    "Can you tell me the answer to {question}?",
+    "Next question: {question}",
+    "Q: {question} A:"]
+
+    @abstractmethod
+    def base_prompt():
+        pass 
+    @abstractmethod
+    def contradiction_prompt():
+        pass 
+
+    @abstractmethod
+    def instructive_prompt():
+        pass 
+
+    @abstractmethod
+    def cot_prompt():
+        pass 
+
+@dataclass
+class HFPrompt(Prompt):
+
+    # ================================|
+    # Prompt Generation
+    def base_prompt(self, question, ctx="base") -> str:
+        """"""
+        match ctx:
+            case "qa":
+                return f"{self.qa_ctx} {question}"
+            case "halu":
+                return f"{self.halu_ctx} {question}"
+            case _:
+                return random.choice(self._templates).format(question=question)
+
+    # TODO contradictive 
+
+    # TODO instructive
+
+    # TODO chain-of-thought
 
 
-def basic_prompt(question) -> tuple[str, str, str]:
-    tgt_prompt = f"Question: {question}?\nAnswer:"
-    return (tgt_prompt, 
-            f"{qa_context} {tgt_prompt}", 
-            f"{halu_context} {tgt_prompt}")
+@dataclass
+class GPTPrompt(Prompt):
+    pass 
 
+if __name__ == "__main__":
+    pr = Prompt()
+    for ctx in "base", "qa", "halu":
+        print(pr.base_prompt("Hello!", ctx))
 
-def contradiction_prompt(question) -> tuple[str, str, str]:
-    mod_string = random.choice(
-        [
-            "that is incorrect",
-            "you're wrong",
-        ]
-    )
-    tgt_string = f"{mod_string} {question}"
-
-    return tgt_string, f"{qa_context}\n{question}", f"{halu_context}\n{question}"
-
-
-def instructive_prompt(question) -> tuple[str, str, str]:
-    mod_string = random.choice(
-        [
-            "",
-            ", but replace all the nouns",
-            ", but replace all the verbs",
-            ", and use synonyms",
-            ", but word that differently",
-            ", but more verbose",
-            ", but less verbose",
-        ]
-    )
-    tgt_string = f"Could you repeat that{mod_string}: {question}"
-    return (
-        tgt_string,
-        f"{qa_context}\n\n{tgt_string}",
-        f"{halu_context}\n\n{tgt_string}",
-    )
-
-
-def chain_of_thought_prompt(question) -> tuple[str, str, str]:
-    tgt_string = f"Answer the following question, explaining each step of your reasoning: {question}"
-    return (
-        tgt_string,
-        f"{qa_context}\n\n{tgt_string}",
-        f"{halu_context}\n\n{tgt_string}",
-    )

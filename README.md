@@ -3,9 +3,9 @@
 This repository contains the source code, documentation, and writeup information
 for my Computational Linguistics MS Capstone.
 
-## Overview / Pipeline 
+## Overview / Pipeline
 
-### TODO 
+### TODO
 
 1. Incorporating topic model into prompting pipeline
     - currently, the topic model is more "proof of concept" than pipeline component. It functions, but
@@ -19,7 +19,7 @@ for my Computational Linguistics MS Capstone.
 4. Information Extraction (retrieval tuning)
     - A pre-process script for QAGNN was included in the source code. I still need to modify this to work on
     the NQ dataset.
-    - 
+    - piping QAGNN into this schema
 5. Discussion & Deliverables
     - Paper length?
     - Presentation length?
