@@ -73,7 +73,24 @@ class HFPrompt(Prompt):
 
 @dataclass
 class GPTPrompt(Prompt):
-    pass 
+
+    def base_prompt(self, question, ctx="base") -> list[dict]:
+        match ctx:
+            case "qa":
+                tgt_ctx = self.qa_ctx
+            case "halu":
+                tgt_ctx = self.halu_ctx
+            case _:
+                tgt_ctx = random.choice(self._templates)
+        
+        return [{"role": "system", "content": tgt_ctx},
+                {"role": "user", "content": question}]
+
+    # TODO contradictive 
+
+    # TODO instructive
+
+    # TODO chain-of-thought
 
 if __name__ == "__main__":
     pr = Prompt()

@@ -4,7 +4,11 @@
 
 # ==================================================================|
 # Model Imports
+
+### Huggingface
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+
+### OpenAI / GPT
 from openai import OpenAI
 
 # StandardLib
@@ -16,7 +20,7 @@ import json
 import tomli  
 
 # Local
-from prompt_construction import Prompt
+from prompt_construction import HFPrompt, GPTPrompt
 from load_data import preprocess_data
 
 # Other Plumbing
@@ -39,11 +43,11 @@ def get_bart_model(**params):
     pass
 
 
-models = {"flant5" : get_flant5_model,
+hfmodels = {"flant5" : get_flant5_model,
           "mixtral": get_mixtral_model,
           "bart"   : get_bart_model}
 # ==================================================================|
-class Prompter:
+class Prompter(ABC):
 
     @abstractmethod
     def generate_response(self, prompt, **kwargs) -> list[str]:
@@ -60,7 +64,7 @@ class HFPrompter(Prompter):
         self.__dict__.update(**params)
 
 
-    def generate_response(self, prompt) -> list[str]:
+    def generate_responses(self, prompt) -> list[str]:
         """Prompt `model` to generate output based on
         the question in `data`. 
         *** This is where the LLM stuff happens ***
@@ -69,20 +73,31 @@ class HFPrompter(Prompter):
         - prompt: a single question
 
         ## returns
-        list[str] -> answers to the batch of questions in data
+        list[list[str]] -> a list of multiple responses
         """
+
+        # TODO prompt repetition
         ids = self.tokenizer(prompt, return_tensors="pt").input_ids
         output = self.model.generate(ids, max_length=self.max_len)
         decoder_out = self.tokenizer.decode(output[0], skip_special_tokens=True)
         return decoder_out
 
-    def response_loop(self, batch, **params):
+    def response_loop(self, batch, batch_id, write_to_file) -> dict[dict]:
         """"""
-        pr = Prompt()
-        # prompt order: basic => chain of thought => contradiction => instruction
-        for question in batch:
-            base_prompt = pr.base_prompt(question)
-        # TODO
+        pr = HFPrompt()
+        prompts = ((i, (pr.base_prompt(question),
+                    pr.contradiction_prompt(question),
+                    pr.instructive_prompt(question),
+                    pr.cot_prompt(question)))
+                                            for i, question in enumerate(batch))
+        
+        main_out = {}
+        for idx, prompt_set in prompts:
+            titles = ["base", "contradiction", "instructive", "chain_of_thought"]
+            responses = {title: self.generate_responses(resp) for title, resp in zip(titles, prompt_set)}
+            main_out[f"{batch_id}.{idx}"] = responses
+        
+        return main_out
 
 
 
@@ -95,8 +110,9 @@ class OAIPrompter(Prompter):
         pass 
     
     def response_loop(self, batch):
-        pass 
-
+        pr = GPTPrompt()
+        for document in batch:
+            self.generate_response()
 # ===============================================================|
 # Main
 def parse_args() -> argparse.Namespace:
@@ -144,7 +160,7 @@ def main(args: argparse.Namespace):
     # =========================================|
     # Huggingface Models
     else:
-        prompter = Prompter(*models[model_name](**model_params), **runtime_parameters)
+        prompter = Prompter(*hfmodels[model_name](**model_params), **runtime_parameters)
 
         # run response loop
         for batch in documents:
