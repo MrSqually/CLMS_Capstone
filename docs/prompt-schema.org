@@ -1,36 +1,33 @@
 #+TITLE: Hallucination / Prompt Schema
 #+author: Dean Cahill
 
-* Types of Hallucination
-** Incorrect Information
-- Factual information
-  - Mistakes
-  - short answer not in output (binary correct/incorrect)
-- Applicative/Synthesis information
-  - Proof-type errors
-  - EM/faithfulness between expected answer and output
-  - *** hard to evaluate
-
+* Types of Evaluation
+** Simple Correctness -  Does the response contain `short_answer` in the text?
+- "Strict" Recall (Adlakha et al 2024)
+** Complex Correctness -  similarity full answer and response tokens (normalized)
+- ROUGE
+- BLEU
+- Precision/Recall/F1
+*** NOTE: traditional QA metrics penalize lexical matching too much - verbosity isn't inherently bad
+** Faithfulness - Token Overlap Precision
+- K-Precision
+   - "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
+** Model Adjudication
+- DeBERTa
 * Types of Prompt Repetition
-** Iterative
+** Bare Prompting
 - Simply repeat the prompt many times, observe the variation
-- Attempt this both
-** Contradictive
+** Contradictive Prompting
 - Inform the model that the output is incorrect
 - various phrasings & extremities
   - "I don't know about that response"
   - "That response"
-** Alternative / "Stylistic"
+** Instructive Prompting
 - Ask the model to repeat itself
 - Provide additional modifications to the request
   - "Could you {say|word} that {again|a different way|differently}?"
   - "Could you repeat that?"
   - "Could you repeat that, but {x}"
-** Contextual
-- Attempt to engineer the prompts specifically to avoid hallucination
-- Multiple forms of context
-  - Naive => provide prompt context for the QA task
-  - Aware => provide prompt context *for the hallucination task*
-
 * Relevant Hyperparameters for tuning
-** Temperature
+- Temperature
+- Number of Repetitions
