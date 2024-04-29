@@ -30,9 +30,6 @@ import tomli
 # Typing Imports
 from typing import Generator
 
-# Logging Imports
-import wandb
-
 random.seed("We each go through so many bodies in each other")
 
 logger = logging.getLogger(__name__)
@@ -229,10 +226,8 @@ def main(args: argparse.Namespace):
     if args.is_train:
         batch_docs = train_topic_model(topic_model, args.train, **hyperparams)
         with open("results/topic_model/batch_docs", 'w') as f:
-            f.write(batch_docs)
-
-    if args.is_eval:
-        group_documents_by_topic(args.train, hyperparams)
+            for batch in batch_docs:
+                f.writelines(batch) 
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 model_name = "flant5"
 
 [model_args]
+# device_map = "auto"
 
 [run_params]
-num_repetitions = 100
+num_repetitions = 3
+batch_size = 100

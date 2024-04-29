@@ -8,6 +8,20 @@ Each prompt returns 3 strings:
 1. the prompt itself
 2. A "naive context" prompt, modified by the QA task context. 
 3. An "aware context" prompt, modified by the hallucination task context (a "metatask")
+
+ORIGINAL FLAN TUNING TEMPLATES:
+"natural_questions": [
+    ("Question: {question}?\nAnswer:", "{answer}"),
+    ("{question}?", "{answer}"),
+    ("Answer the following question:\n\n{question}", "{answer}"),
+    ("Answer this question:\n\n{question}?", "{answer}"),
+    ("Please answer this question: {question}", "{answer}"),
+    ("Answer the question...{question}?", "{answer}"),
+    ("What is the answer to this question? {question}", "{answer}"),
+    ("Can you tell me the answer to {question}?", "{answer}"),
+    ("Next question: {question}", "{answer}"),
+    ("Q: {question} A:", "{answer}"),
+],
 """
 
 
@@ -22,7 +36,10 @@ def get_prompts():
 
 
 def basic_prompt(question) -> tuple[str, str, str]:
-    return f"{question}", f"{qa_context}\n\n{question}", f"{halu_context}\n\n{question}"
+    tgt_prompt = f"Question: {question}?\nAnswer:"
+    return (tgt_prompt, 
+            f"{qa_context} {tgt_prompt}", 
+            f"{halu_context} {tgt_prompt}")
 
 
 def contradiction_prompt(question) -> tuple[str, str, str]:
@@ -32,9 +49,9 @@ def contradiction_prompt(question) -> tuple[str, str, str]:
             "you're wrong",
         ]
     )
-    tgt_string = f"{mod_string}. {question}"
+    tgt_string = f"{mod_string} {question}"
 
-    return tgt_string, f"{qa_context}\n\n{question}", f"{halu_context}\n\n{question}"
+    return tgt_string, f"{qa_context}\n{question}", f"{halu_context}\n{question}"
 
 
 def instructive_prompt(question) -> tuple[str, str, str]:
