@@ -50,7 +50,7 @@ hfmodels = {"flant5" : get_flant5_model,
 class Prompter(ABC):
 
     @abstractmethod
-    def generate_response(self, prompt, **kwargs) -> list[str]:
+    def generate_responses(self, prompt, **kwargs) -> list[str]:
         pass 
 
     @abstractmethod
@@ -58,7 +58,8 @@ class Prompter(ABC):
         pass
 
 class HFPrompter(Prompter):
-    def __init__(self, model: AutoModelForSeq2SeqLM, tokenizer: AutoTokenizer, **params):
+    def __init__(self, model_name:str, model: AutoModelForSeq2SeqLM, tokenizer: AutoTokenizer, **params):
+        self.model_name = model_name
         self.model = model
         self.tokenizer = tokenizer
         self.__dict__.update(**params)
@@ -82,7 +83,7 @@ class HFPrompter(Prompter):
         decoder_out = self.tokenizer.decode(output[0], skip_special_tokens=True)
         return decoder_out
 
-    def response_loop(self, batch, batch_id, write_to_file) -> dict[dict]:
+    def response_loop(self, batch, batch_id, write_to_file=False) -> dict[dict]:
         """"""
         pr = HFPrompt()
         prompts = ((i, (pr.base_prompt(question),
@@ -95,8 +96,12 @@ class HFPrompter(Prompter):
         for idx, prompt_set in prompts:
             titles = ["base", "contradiction", "instructive", "chain_of_thought"]
             responses = {title: self.generate_responses(resp) for title, resp in zip(titles, prompt_set)}
-            main_out[f"{batch_id}.{idx}"] = responses
-        
+            main_out[idx] = responses
+
+        if write_to_file:
+            with open(f'{self.model_name}.{batch_id}.json', 'w+') as f:
+                f.write(json.dumps(main_out) + "\n")
+
         return main_out
 
 
@@ -106,7 +111,7 @@ class OAIPrompter(Prompter):
         self.model_client = OpenAI()
         self.__dict__.update(**kwargs)
 
-    def generate_response(self, prompt) -> list[str]:
+    def generate_responses(self, prompt) -> list[str]:
         pass 
     
     def response_loop(self, batch):
@@ -160,11 +165,13 @@ def main(args: argparse.Namespace):
     # =========================================|
     # Huggingface Models
     else:
-        prompter = Prompter(*hfmodels[model_name](**model_params), **runtime_parameters)
+        prompter = HFPrompter(model_name, *hfmodels[model_name](**model_params), **runtime_parameters)
 
         # run response loop
-        for batch in documents:
-            prompter.response_loop(dataset=batch["question_text"])
+        for n, batch in enumerate(documents):
+            prompter.response_loop(batch["question_text"], 
+                                   batch_id = n, 
+                                   write_to_file=True)
 
 
 

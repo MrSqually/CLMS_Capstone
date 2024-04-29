@@ -34,6 +34,7 @@ class Prompt(ABC):
     "Next question: {question}",
     "Q: {question} A:"]
 
+    """    
     @abstractmethod
     def base_prompt():
         pass 
@@ -47,7 +48,8 @@ class Prompt(ABC):
 
     @abstractmethod
     def cot_prompt():
-        pass 
+        pass  
+    """
 
 @dataclass
 class HFPrompt(Prompt):
@@ -64,11 +66,35 @@ class HFPrompt(Prompt):
             case _:
                 return random.choice(self._templates).format(question=question)
 
-    # TODO contradictive 
-
-    # TODO instructive
-
-    # TODO chain-of-thought
+    def contradiction_prompt(self, question, ctx="base") -> str:
+        """"""
+        match ctx:
+            case "qa":
+                return f"{self.qa_ctx} {question}"
+            case "halu":
+                return f"{self.halu_ctx} {question}"
+            case _:
+                return random.choice(self._templates).format(question=question)
+            
+    def instructive_prompt(self, question, ctx="base") -> str:
+        """"""
+        match ctx:
+            case "qa":
+                return f"{self.qa_ctx} {question}"
+            case "halu":
+                return f"{self.halu_ctx} {question}"
+            case _:
+                return random.choice(self._templates).format(question=question)
+            
+    def cot_prompt(self, question, ctx="base") -> str:
+        """Chain of Thought prompt"""
+        match ctx:
+            case "qa":
+                return f"{self.qa_ctx} {question}"
+            case "halu":
+                return f"{self.halu_ctx} {question}"
+            case _:
+                return random.choice(self._templates).format(question=question)
 
 
 @dataclass
