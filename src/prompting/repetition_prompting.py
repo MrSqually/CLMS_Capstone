@@ -18,34 +18,15 @@ from collections import defaultdict
 import logging 
 import json 
 import tomli  
+from tqdm import tqdm
 
 # Local
-from prompt_construction import HFPrompt, GPTPrompt
+from prompt_construction import FLANT5Prompt, GPTPrompt, MixtralPrompt
 from load_data import preprocess_data
 
 # Other Plumbing
 logger = logging.getLogger(__name__)
-# ====================================================================|
 
-def get_flant5_model(**params):
-    flan_t5 = "google/flan-t5-small"
-    model = AutoModelForSeq2SeqLM.from_pretrained(flan_t5, **params)
-    tokenizer = AutoTokenizer.from_pretrained(flan_t5)
-    return model, tokenizer
-
-def get_mixtral_model(**params):
-    mixtral = "mistralai/Mixtral-8x7B-v0.1"
-    model = AutoModelForCausalLM.from_pretrained(mixtral, **params)
-    tokenizer = AutoTokenizer.from_pretrained(mixtral)
-    return model, tokenizer
-
-def get_bart_model(**params):
-    pass
-
-
-hfmodels = {"flant5" : get_flant5_model,
-          "mixtral": get_mixtral_model,
-          "bart"   : get_bart_model}
 # ==================================================================|
 class Prompter(ABC):
 
@@ -57,11 +38,12 @@ class Prompter(ABC):
     def response_loop(self, data, **kwargs):
         pass
 
-class HFPrompter(Prompter):
-    def __init__(self, model_name:str, model: AutoModelForSeq2SeqLM, tokenizer: AutoTokenizer, **params):
-        self.model_name = model_name
-        self.model = model
-        self.tokenizer = tokenizer
+class FlanT5Prompter(Prompter):
+    def __init__(self, **params):
+        self.model_name = "google/flan-t5-small"
+        self.model =  AutoModelForSeq2SeqLM.from_pretrained(self.model_name, **params)
+        self.pr = FLANT5Prompt()
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.__dict__.update(**params)
 
 
@@ -75,49 +57,105 @@ class HFPrompter(Prompter):
 
         ## returns
         list[list[str]] -> a list of multiple responses
-        """
-
-        # TODO prompt repetition
-        ids = self.tokenizer(prompt, return_tensors="pt").input_ids
-        output = self.model.generate(ids, max_length=self.max_len)
-        decoder_out = self.tokenizer.decode(output[0], skip_special_tokens=True)
-        return decoder_out
+        """    
+        encoder_in = prompt
+        prompt_responses = []
+        for i in range(self.num_repetitions):
+            ids = self.tokenizer(prompt, return_tensors="pt").input_ids
+            output = self.model.generate(ids, max_length=self.max_len)
+            decoder_out = self.tokenizer.decode(output[0], skip_special_tokens=True)
+            prompt_responses.append(decoder_out)
+            encoder_in = encoder_in + decoder_out + prompt
+        return prompt_responses
 
     def response_loop(self, batch, batch_id, write_to_file=False) -> dict[dict]:
         """"""
-        pr = HFPrompt()
-        prompts = ((i, (pr.base_prompt(question),
-                    pr.contradiction_prompt(question),
-                    pr.instructive_prompt(question),
-                    pr.cot_prompt(question)))
-                                            for i, question in enumerate(batch))
         
-        main_out = {}
-        for idx, prompt_set in prompts:
+        main_out, question_keys = {}, {}
+        for i, question in enumerate(batch):
+            prompts = (self.pr.base_prompt(question),
+                          self.pr.contradiction_prompt(question),
+                          self.pr.instructive_prompt(question),
+                          self.pr.cot_prompt(question))
+            question_keys[i] = question      
             titles = ["base", "contradiction", "instructive", "chain_of_thought"]
-            responses = {title: self.generate_responses(resp) for title, resp in zip(titles, prompt_set)}
-            main_out[idx] = responses
-
+            responses = {title: self.generate_responses(resp) for title, resp in zip(titles, prompts)}
+            main_out[i] = responses
+            
         if write_to_file:
-            with open(f'{self.model_name}.{batch_id}.json', 'w+') as f:
-                f.write(json.dumps(main_out) + "\n")
-
+            with open(f"results/prompting/{self.model_name}.{batch_id}.keys.json", 'w+') as f:
+                f.write(json.dumps(question_keys, indent=2))
+            with open(f'results/prompting/{self.model_name}.{batch_id}.json', 'w+') as f:
+                f.write(json.dumps(main_out, indent=2) + "\n")
         return main_out
 
+class MixtralPrompter(Prompter):
+    def __init__(self,  model_params, **kwargs):
+        self.model_name = "mistralai/Mixtral-8x7B-v0.1"
+        self.pr = MixtralPrompt()
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **model_params)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.__dict__.update(**kwargs)
 
+    def generate_responses(self, prompt) -> list[str]:        
+        model_in = prompt 
+        for i in range(self.num_repetitions):
+            # TODO 
+            pass 
+
+    def response_loop(self, batch, batch_id, write_to_file=False):
+        main_out, question_keys = {}, {}
+
+        for i, question in enumerate(batch):
+            question_keys[i] = question
+            prompts =  (self.pr.base_prompt(question),
+                        self.pr.contradiction_prompt(question),
+                        self.pr.instructive_prompt(question),
+                        self.pr.cot_prompt(question))
+            titles = ["base", "contradiction", "instructive", "chain_of_thought"]
+            responses = {title: self.generate_responses(resp) for title, resp in zip(titles, prompts)}
+            main_out[i] = responses
+
+        if write_to_file:
+            with open(f"results/prompting/{self.model_name}.{batch_id}.keys.json", 'w+') as f:
+                f.write(json.dumps(question_keys, indent=2))
+            with open(f'results/prompting/{self.model_name}.{batch_id}.json', 'w+') as f:
+                f.write(json.dumps(main_out, indent=2) + "\n")
 
 class OAIPrompter(Prompter):
     def __init__(self, **kwargs):
         self.model_client = OpenAI()
+        self.pr = GPTPrompt()
         self.__dict__.update(**kwargs)
 
     def generate_responses(self, prompt) -> list[str]:
-        pass 
-    
-    def response_loop(self, batch):
-        pr = GPTPrompt()
-        for document in batch:
-            self.generate_response()
+        
+        model_in = prompt 
+        for i in range(self.num_repetitions):
+            completion = self.model_client.chat.completions.create(model="",
+                                                      messages=model_in)
+            model_out = completion.choices[0].message
+            model_in.append(model_out)
+            model_in.append(prompt)
+
+    def response_loop(self, batch, batch_id, write_to_file=False):
+        main_out, question_keys = {}, {}
+
+        for i, question in enumerate(batch):
+            question_keys[i] = question
+            prompts =  (self.pr.base_prompt(question),
+                        self.pr.contradiction_prompt(question),
+                        self.pr.instructive_prompt(question),
+                        self.pr.cot_prompt(question))
+            titles = ["base", "contradiction", "instructive", "chain_of_thought"]
+            main_out[i] = {title: self.generate_responses(resp) for title, resp in zip(titles, prompts)}
+
+        if write_to_file:
+            with open(f"results/prompting/{self.model_name}.{batch_id}.keys.json", 'w+') as f:
+                f.write(json.dumps(question_keys, indent=2))
+            with open(f'results/prompting/{self.model_name}.{batch_id}.json', 'w+') as f:
+                f.write(json.dumps(main_out, indent=2) + "\n")
+
 # ===============================================================|
 # Main
 def parse_args() -> argparse.Namespace:
@@ -158,23 +196,26 @@ def main(args: argparse.Namespace):
     # =========================================|
     # GPT API
     if model_name == "gpt":
-        gpt_pr = OAIPrompter()
-        for batch in documents:
+        gpt_pr = OAIPrompter({"model_name": model_name})
+        for n, batch in tqdm(enumerate(documents)):
             gpt_pr.response_loop(dataset=batch["question_text"])
 
     # =========================================|
     # Huggingface Models
-    else:
-        prompter = HFPrompter(model_name, *hfmodels[model_name](**model_params), **runtime_parameters)
-
+    if model_name == "flant5":
+        prompter = FlanT5Prompter()
         # run response loop
-        for n, batch in enumerate(documents):
+        for n, batch in tqdm(enumerate(documents)):
             prompter.response_loop(batch["question_text"], 
                                    batch_id = n, 
                                    write_to_file=True)
-
-
-
+    if model_name == "mixtral":
+        prompter = MixtralPrompter()
+        # run response loop
+        for n, batch in tqdm(enumerate(documents)):
+            prompter.response_loop(batch["question_text"], 
+                                   batch_id = n, 
+                                   write_to_file=True)        
 
 if __name__ == "__main__":
     args = parse_args()

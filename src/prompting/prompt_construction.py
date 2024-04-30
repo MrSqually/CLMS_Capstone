@@ -52,7 +52,7 @@ class Prompt(ABC):
     """
 
 @dataclass
-class HFPrompt(Prompt):
+class FLANT5Prompt(Prompt):
 
     # ================================|
     # Prompt Generation
@@ -96,7 +96,22 @@ class HFPrompt(Prompt):
             case _:
                 return random.choice(self._templates).format(question=question)
 
+@dataclass 
+class MixtralPrompt(Prompt):
+    def base_prompt(self, question, ctx="base") -> list[dict]:
+        match ctx:
+            case "qa":
+                tgt_ctx = self.qa_ctx
+            case "halu":
+                tgt_ctx = self.halu_ctx
+            case _:
+                tgt_ctx = random.choice(self._templates)
+        
+        return [{"role": "system", "content": tgt_ctx},
+                {"role": "user", "content": question}]
+    
 
+    
 @dataclass
 class GPTPrompt(Prompt):
 
