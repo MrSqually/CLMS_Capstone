@@ -1,6 +1,6 @@
 
 *data/*
-
+.personal
 # ignore config
 .vscode/*
 

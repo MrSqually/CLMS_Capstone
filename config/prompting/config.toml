@@ -1,10 +1,22 @@
-#
-model_name = "flant5"
+model_name = "gpt"
 
-[model_args]
-# device_map = "auto"
+[experimental_params]
+num_docs = 500
+num_reps = 50
 
-[run_params]
-num_repetitions = 3
-batch_size = 100
-max_len = 100
+[mixtral_prompt_params]
+top_k = 50  # number of most likely tokens
+top_p = 0.9 # samples from top % of most likely tokens
+max_tokens = 512 
+min_tokens = 0
+temperature = 0.6 #randomness of outputs: 1 = random, 0 = deterministic
+presence_penalty = 1.15
+frequency_penalty = 0.2
+
+[gpt_prompt_params]
+model = "gpt-3.5-turbo-0125"
+frequency_penalty = 0.2
+max_tokens = 512
+presence_penalty = 1.0
+temperature = 0.8
+top_p = 1

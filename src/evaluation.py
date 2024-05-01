@@ -14,8 +14,19 @@ Four primary forms of evaluation:
         i.) "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
 4.) Model Adjudication with DeBERTa
 
+From these evaluation metrics, we build HV. 
+
+NOTE 
+HaluVar should:
+
+1.) reflect the deviation in hallucination rate from expected as context grows
+2.) Given a hallucination rate, normalize the hallucination rate of the repetitions by their size, compare the hallucination rate at time point (t) to the overall average hallucination rate
+3.) increase non-linearly with the raw number of hallucinations
+4.) be bounded between [0,1)
+5.) more...
+
 NOTE
-traditional QA metrics penalize lexical matching too much -
+traditional QA metrics penalize lexical matching too much:
 verbosity is not inherently bad.
 """
 
@@ -45,6 +56,5 @@ class HaluMetrics:
         - contradiction 
         - entailment 
         - neutral 
-
         """
         pass 
