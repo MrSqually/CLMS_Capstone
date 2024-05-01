@@ -1,0 +1,47 @@
+#+title: Hallucinatory Variance (HV) Metric Note sheet & Definitions
+#+author: Dean Cahill
+
+* Active Questions
+** Which discrete hallucination metric is best for HV?
+1.) Simplex Correctness -  Does the response contain `short_answer` in the text?
+    a.) "Strict" Recall (Adlakha et al 2024)
+2.) Complex Correctness -  similarity full answer and response tokens (normalized)
+    a.) ROUGE
+    b.) BLEU
+    c.) Precision/Recall/F1
+    ***Token-based metrics are bad for hallucination detection!***
+3.) Faithfulness - Token Overlap Precision
+    a.) K-Precision
+        i.) "faithfulness wrt relevant knowledge"  (Adlakha et al 2024)
+4.) Model Adjudication with DeBERTa / BERTscore
+
+** Is HV experimentally valid? (the capstone)
+
+* What?
+** Evaluation Metric for Generative QA
+- The deviation in hallucination rate *from expected* as context grows
+  * *from expected?* 
+  - this is the definition of variance, but with HR instead of SDM
+  - This definition does not define hallucination rate (yet)
+- Should grow non-linearly with number of hallucinations
+- Lower temperature should tend to reduce HV
+- Snowball hallucination effect over time
+- Account for difference in extrinsic / intrinsic hallucination? extrinsic var / intrinsic var?
+
+** What are we measuring?
+- The specific effect of the expanding context of an LLM (mimicking a chat interface)
+on the tendency for that model to hallucinate.
+- This is maybe obvious? But having a replicable metric that conveys this would be good!
+
+* How?
+** Current Plan
+- Measure the hallucination rate across the dataset at each time (t)
+- compare this to the total average of the hallucinations
+- ideally, we would observe this value:
+  - positive correlation with time/context
+  - positive correlation with temperature/top_p
+  - replicable over multiple experiments
+** Experiment
+- run on each LLM 2-3 times (but not with all 300k isntances)
+- perform HV evaluation on each set of data
+- if number is beyond some margin, tweak the metric
