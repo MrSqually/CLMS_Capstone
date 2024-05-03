@@ -1,13 +1,17 @@
-model_name = "gpt"
+
 
 [experimental_params]
 num_docs = 500
 num_reps = 50
+batch_size = 100
+model_name = "gpt"
+
 
 [mixtral_prompt_params]
+model = "mistralai/mixtral-8x7b-instruct-v0.1"
 top_k = 50  # number of most likely tokens
 top_p = 0.9 # samples from top % of most likely tokens
-max_tokens = 512 
+max_tokens = 256 
 min_tokens = 0
 temperature = 0.6 #randomness of outputs: 1 = random, 0 = deterministic
 presence_penalty = 1.15
@@ -16,7 +20,7 @@ frequency_penalty = 0.2
 [gpt_prompt_params]
 model = "gpt-3.5-turbo-0125"
 frequency_penalty = 0.2
-max_tokens = 512
+max_tokens = 256
 presence_penalty = 1.0
 temperature = 0.8
 top_p = 1

@@ -18,7 +18,10 @@ class HaluMetrics:
         self.bert_scorer = BERTScorer(lang="en", rescale_with_baseline=True)
 
     def get_haluvar(self, cands: list[list[str]], refs: list[str], num_reps: int) -> int:
+        """"""
+        
         pass 
+
 
     def get_bertscore(self, cands: list[str], refs: list[str]) -> tuple[tuple[float, float, float],str]:
         """Calculate the mean BERT score for a single 
