@@ -19,6 +19,7 @@ import logging
 import json 
 import pandas as pd 
 import random
+import replicate.exceptions
 import tomli  
 from tqdm import tqdm
 
@@ -91,6 +92,8 @@ class Prompter(ABC):
         batch_out = {}
         batch_keys = {}
         for i, question in enumerate(batch):
+            if i == 0 or i == 1 :
+                continue 
             question_out = defaultdict(lambda: defaultdict(dict))
             for init_context in ("none", "qa", "halu"):
                 prompt = self.get_initial_ctx(init_context) + question
@@ -99,14 +102,17 @@ class Prompter(ABC):
 
             batch_out[i] = question_out
             batch_keys[i] = question
-            with open(f"{self.model_name}.{idx}.json", 'a+') as f, open(f"{self.model_name}.{idx}.keys.json", "a+") as k:
+            with open(f"{self.model_name}.{idx}.json", 'w+') as f, open(f"{self.model_name}.{idx}.keys.json", "w+") as k:
                 f.write(json.dumps(batch_out, indent=2))
                 k.write(json.dumps(batch_keys, indent=2))
     
 # ============================================================================|
 class LlamaPrompter(Prompter):
-    prompt_template = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{context}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-
+    prompt_template = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+    
+    def __init__(self, **kwargs):
+        self.__dict__.update(**kwargs)
+    
     def modulate_context(self,context_type):
         match context_type:
             case "contradict":
@@ -114,7 +120,7 @@ class LlamaPrompter(Prompter):
             case "instruct":
                 return self.get_instruct_ctx()
             case _:
-                return ""
+                return "You are a helpful assistant"
 
     def generate_responses(self, prompt, context) -> list[str]:
         out = []
@@ -123,18 +129,17 @@ class LlamaPrompter(Prompter):
                     "top_p": self.top_p,
                     "temperature": self.temperature,
                     "system_prompt": self.get_initial_ctx(context),
-                    "length_penalty": self.length_penalty,
+                    "length_penalty": self.frequency_penalty,
                     "max_new_tokens": self.max_tokens,
                     "prompt_template": self.prompt_template,
                     "presence_penalty": self.presence_penalty}
         
-        for i in range(self.num_repetitions):
+        for i in tqdm(range(self.num_reps)):
             response = replicate.run(self.model,
                                       input=model_in)
             model_out = "".join(response)
-            #TODO repetition
-            
-            
+            out.append(model_out)
+            model_in["prompt_template"] = model_in["prompt_template"] + f"<|start_header_id|>user<|end_header_id|>\n\n{self.modulate_context(context)}" + "{prompt}<|eot_id|>"
         return out 
 # ============================================================================|
 class MixtralPrompter(Prompter):
@@ -149,28 +154,33 @@ class MixtralPrompter(Prompter):
             case "instruct":
                 return self.get_instruct_ctx()
             case _:
-                return ""
+                return "You are a helpful assistant."
 
     def generate_responses(self, prompt, context="base") -> list[str]:        
         out = []
+        init_ctx = self.get_initial_ctx(context)
         model_in = {"prompt": prompt,
                     "top_k": self.top_k,
                     "top_p": self.top_p,
                     "temperature": self.temperature,
-                    "system_prompt": self.get_initial_ctx(context),
-                    "length_penalty": self.length_penalty,
+                    "system_prompt": init_ctx,
+                    "length_penalty": self.frequency_penalty,
                     "max_new_tokens": self.max_tokens,
                     "prompt_template": "<s>[INST] {prompt} [/INST] ",
                     "presence_penalty": self.presence_penalty}
         
-        for i in range(self.num_repetitions):
-            response = replicate.run(self.model,
-                                      input=input,
-                                      )
-            model_out = "".join(response)
-            out.append(model_out)
-            model_in["prompt"] = model_in["prompt"] + f"[INST] {model_out} [/INST]"
-            model_in["prompt_template"] = f"<s>[INST]{self.modulate_context(context)}" + "{prompt}"
+        for i in tqdm(range(self.num_reps)):
+            try:
+                response = replicate.run(self.model,
+                                        input=model_in
+                                        )
+                model_out = "".join(response)
+                out.append(model_out)
+                model_in["prompt"] = f"[INST] {model_out} [/INST] " + prompt
+                model_in["prompt_template"] = f"<s>[INST]{self.modulate_context(context)}" + "{prompt} [/INST]"
+            except replicate.exceptions.ModelError as e:
+                continue 
+
         return out 
 # ============================================================================|
 class GPTPrompter(Prompter):
@@ -255,15 +265,16 @@ def main(args: argparse.Namespace):
             pr = MixtralPrompter(**runtime_parameters)
         # Llama (3?)
         case "llama":
-            runtime_parameters["prompt_params"] = hyperparameters["mixtral_prompt_params"]
+            runtime_parameters.update(hyperparameters["llama_prompt_params"])
             pr = LlamaPrompter(**runtime_parameters)
 
 
     # response-generation loop
     for n, batch in tqdm(enumerate(documents)):
+        if n <= 1:
+            continue 
         pr.response_loop(batch["question_text"], n)
-        if n == hyperparameters["num_docs"]:
-            break 
+
 
     print("Complete!")
 

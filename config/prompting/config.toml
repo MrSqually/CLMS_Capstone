@@ -1,10 +1,20 @@
 
 
 [experimental_params]
-num_docs = 500
-num_reps = 50
+num_docs = 5000
+num_reps = 10
 batch_size = 100
-model_name = "gpt"
+model_name = "mixtral"
+
+[llama_prompt_params]
+model = "meta/meta-llama-3-8b"
+top_k = 50  # number of most likely tokens
+top_p = 0.9 # samples from top % of most likely tokens
+max_tokens = 256 
+min_tokens = 0
+temperature = 0.6 #randomness of outputs: 1 = random, 0 = deterministic
+presence_penalty = 1.15
+frequency_penalty = 0.2
 
 
 [mixtral_prompt_params]

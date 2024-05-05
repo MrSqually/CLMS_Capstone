@@ -3,23 +3,20 @@
 This repository contains the source code, documentation, and writeup information
 for my Computational Linguistics MS Capstone.
 
-## Overview / Pipeline
+## Prompt Code
 
-### TODO
+Prompts are generated via `src/prompting/repetition_prompting.py`. This script contains code to query various APIs for LLM reponse, as well as the
+loop to concatenate context & generate responses. If the user has Replicate and OpenAI API keys, the code should work from jump.
 
-1. Incorporating topic model into prompting pipeline
-    - currently, the topic model is more "proof of concept" than pipeline component. It functions, but
-    doesn't actually cluster the documents.
-2. Improving prompt pipeline
-    - FLAN tuning uses a specific set of prompt templates - leverage these.
-    - randomization & multiple-turn prompts
-3. Evaluation
-    - Basically just data-wrangling the "answer span" offsets into a string representation and comparing
-    that for eval metrics listed in `evaluation.py`
-4. Information Extraction (retrieval tuning)
-    - A pre-process script for QAGNN was included in the source code. I still need to modify this to work on
-    the NQ dataset.
-    - piping QAGNN into this schema
-5. Discussion & Deliverables
-    - Paper length?
-    - Presentation length?
+This script is designed to choose a model to run on by reading the "model_name" parameter within the configuration file. This allowed us to run multiple
+LLM prompt cycles concurrently by simply altering the configuration between script runs in separate terminals.
+
+## Evaluation Code
+
+The evaluation script is designed to run on the prompting output. Further optimization can be made, but the nature of the prompting task made data-wrangling for efficient
+comparison somewhat difficult (the outermost structure of the data is the question, not the loci of comparison, such as initial context).
+
+## Topic Model
+
+While the topic model was not used in the final writeup, the code to generate clusters over Natural Questions is made available in `src/topic_modeling.py`. The
+metric's inability to capture the phenomenon made testing on the clusters seem like a waste of time and resources.

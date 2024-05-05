@@ -7,3 +7,4 @@
 
 # pycache files
 *.py[c,o]
+failed_prompts/
