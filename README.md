@@ -3,9 +3,13 @@
 This repository contains the source code, documentation, and writeup information
 for my Computational Linguistics MS Capstone.
 
+## Dataset
+
+The data is available from [https://ai.google.com/research/NaturalQuestions](Google). We use the "simplified" version of this dataset, as it is much more manageable size-wise, and the full HTML pages don't provide any additional information. 
+
 ## Prompt Code
 
-Prompts are generated via `src/prompting/repetition_prompting.py`. This script contains code to query various APIs for LLM reponse, as well as the
+Prompts are generated via `src/repetition_prompting.py`. This script contains code to query various APIs for LLM reponse, as well as the
 loop to concatenate context & generate responses. If the user has Replicate and OpenAI API keys, the code should work from jump.
 
 This script is designed to choose a model to run on by reading the "model_name" parameter within the configuration file. This allowed us to run multiple
@@ -13,8 +17,7 @@ LLM prompt cycles concurrently by simply altering the configuration between scri
 
 ## Evaluation Code
 
-The evaluation script is designed to run on the prompting output. Further optimization can be made, but the nature of the prompting task made data-wrangling for efficient
-comparison somewhat difficult (the outermost structure of the data is the question, not the loci of comparison, such as initial context).
+The evaluation script is designed to run on the prompting output. Further optimization can be made, but the nature of the prompting task made data-wrangling for efficient comparison somewhat difficult (the outermost structure of the data is the question, not the relevant context).
 
 ## Topic Model
 
